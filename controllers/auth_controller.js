@@ -160,7 +160,7 @@ const refreshToken = async (req, res, next) => {
 
         jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, (err) => {
             if (err) return res.sendStatus(403);
-            const { accessToken } = jwtGenerator(developer.id);
+            const { accessToken } = jwtGenerator(developer.developer_id);
             res.status(200).json({ accessToken: accessToken });
         });
 

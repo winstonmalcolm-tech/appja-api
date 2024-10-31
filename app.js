@@ -15,6 +15,7 @@ const errorHandler = require("./middlewares/error_middleware");
 const developerRoute = require("./routes/developer_route");
 const authRoute = require("./routes/auth_route");
 const appRoute = require("./routes/app_route");
+const reviewRoute = require("./routes/review_route");
 
 app.use("/uploads", express.static(path.join("uploads")));
 
@@ -23,6 +24,7 @@ app.use("/uploads", express.static(path.join("uploads")));
 app.use("/auth", authRoute);
 app.use("/app", appRoute);
 app.use("/developer", developerRoute);
+app.use("/review", reviewRoute);
 
 app.use("*", (req,res)=> {
     res.status(404).json({message: "Incorrect route"});

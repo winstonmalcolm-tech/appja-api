@@ -35,12 +35,6 @@ const upload = async (req, res, next) => {
             await mysql.query(sql, [result.insertId, image_url]);
         }
 
-        
-
-        // console.log(app);
-        // console.log(images);
-        // console.log(icon);
-
         res.status(200).json({message: "Uploaded successfully"});
 
     } catch (error) {

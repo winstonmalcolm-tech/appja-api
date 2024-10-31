@@ -22,7 +22,6 @@ const protect = async (req, res, next) => {
             throw new Error("Not valid token");
         }
 
-
         const decodedToken = jwt.decode(token);
 
         req.id = decodedToken.id;
