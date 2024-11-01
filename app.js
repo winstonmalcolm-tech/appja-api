@@ -1,4 +1,5 @@
 const express = require("express");
+const socketio = require("socket.io");
 const app = express();
 const path = require("path");
 
@@ -33,4 +34,20 @@ app.use("*", (req,res)=> {
 app.use(errorHandler);
 
 
-app.listen(port, () => console.log(`Server running on port ${port}`));
+const server = app.listen(port, () => console.log(`Server running on port ${port}`));
+
+//io is the socket.io server
+const io = socketio(server);
+
+//on is a regular javascript even listener
+io.on("connect", socket => {
+
+    socket.on("join-room", (room) => {
+        socket.join(room);
+    });
+
+    socket.on("send-review", (room, message) => {
+        io.to(room).emit("receive-review", message);
+    });
+
+});

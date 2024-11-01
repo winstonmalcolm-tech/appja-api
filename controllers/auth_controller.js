@@ -29,20 +29,28 @@ const register = async (req,res, next) => {
             throw new Error(`Invalid email ${reason}`);
         }
 
-        const tempSql = "SELECT * FROM developer_tbl WHERE email = ? LIMIT 1";
-        const [rows] = await mysql.query(tempSql,[email]);
+        let tempSql = "SELECT * FROM developer_tbl WHERE email = ? LIMIT 1";
+        let [rows] = await mysql.query(tempSql,[email]);
 
         if (rows.length > 0) {
             res.status(409);
             throw new Error("User with this email already exists");
         }
 
+        tempSql = "SELECT * FROM developer_tbl WHERE username = ? LIMIT 1";
+        [rows] = await mysql.query(tempSql, [username]);
+
+        if (rows.length > 0) {
+            res.status(409);
+            throw new Error("Username already in use");
+        }
+
         const emailToken = emailTokenGenerator();
         const hashedPassword = await bcrypt.hash(password,10);
         
         //SQL QUERY
-        const sql = "INSERT INTO developer_tbl (first_name, last_name, email, developer_password, verification_token) VALUES (?,?,?,?,?)";
-        const [result, fields] = await mysql.query(sql,[firstName, lastName, email, hashedPassword, emailToken]);
+        const sql = "INSERT INTO developer_tbl (first_name, last_name, email, username, developer_password, verification_token) VALUES (?,?,?,?,?,?)";
+        await mysql.query(sql,[firstName, lastName, email, username, hashedPassword, emailToken]);
 
 
         const verificationUrl = `${req.protocol}://${req.hostname}:${process.env.PORT}/auth/verify/${emailToken}`;
