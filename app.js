@@ -2,11 +2,14 @@ const express = require("express");
 const socketio = require("socket.io");
 const app = express();
 const path = require("path");
+const cors = require("cors");
 
 const port = process.env.PORT || 8000;
 
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
+
+app.use(cors())
 
 
 //Middlewares

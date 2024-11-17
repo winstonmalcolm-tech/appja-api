@@ -73,6 +73,8 @@ const register = async (req,res, next) => {
     }
 }
 
+
+
 const verify = async (req,res,next) => {
 
     try {
@@ -112,9 +114,9 @@ const login = async (req, res, next) => {
             throw new Error("Please fill all fields");
         }
 
-        let sql = "SELECT * FROM developer_tbl WHERE email = ? LIMIT 1";
+        let sql = "SELECT * FROM developer_tbl WHERE email = ? OR username = ? LIMIT 1";
 
-        const [rows] = await mysql.query(sql, [email]);
+        const [rows] = await mysql.query(sql, [email, email]);
         
         if (rows.length < 1) {
             res.status(404);
@@ -182,7 +184,7 @@ const logout = async (req,res,next) => {
     try {
         const refresh_token = req.body.refreshToken;
 
-        let sql = "UPDATE developers_tbl SET refresh_token = NULL WHERE refresh_token = ?";
+        let sql = "UPDATE developer_tbl SET refresh_token = NULL WHERE refresh_token = ?";
 
         await mysql.query(sql, [refresh_token]);
 
