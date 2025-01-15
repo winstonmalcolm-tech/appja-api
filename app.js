@@ -20,6 +20,7 @@ const developerRoute = require("./routes/developer_route");
 const authRoute = require("./routes/auth_route");
 const appRoute = require("./routes/app_route");
 const reviewRoute = require("./routes/review_route");
+const paymentRoute = require("./routes/payment_route");
 
 app.use("/uploads", express.static(path.join("uploads")));
 
@@ -29,6 +30,7 @@ app.use("/auth", authRoute);
 app.use("/app", appRoute);
 app.use("/developer", developerRoute);
 app.use("/review", reviewRoute);
+app.use("/paypal", paymentRoute);
 
 app.use("*", (req,res)=> {
     res.status(404).json({message: "Incorrect route"});
@@ -40,17 +42,24 @@ app.use(errorHandler);
 const server = app.listen(port, () => console.log(`Server running on port ${port}`));
 
 //io is the socket.io server
-const io = socketio(server);
+const io = socketio(server, {
+    cors: {
+        origin: ["http://localhost:5173"]
+    }
+});
 
 //on is a regular javascript even listener
 io.on("connect", socket => {
+    console.log(socket.id);
 
     socket.on("join-room", (room) => {
+        console.log("Room Joined");
         socket.join(room);
     });
 
-    socket.on("send-review", (room, message) => {
-        io.to(room).emit("receive-review", message);
+    socket.on("send-review", (data) => {
+        console.log(data);
+        io.to(data.room_id).emit("receive-review", data);
     });
 
 });

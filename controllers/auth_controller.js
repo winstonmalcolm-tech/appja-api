@@ -6,10 +6,19 @@ const emailTokenGenerator = require("../utlis/email_token_generator");
 const jwt = require("jsonwebtoken");
 const jwtGenerator = require("../utlis/jwt_token_generator");
 
+
+
 const register = async (req,res, next) => {
 
     try {   
         const {firstName, lastName, email, username, password} = req.body;
+
+        const socials = [
+            "Instagram",
+            "LinkedIn",
+            "Website",
+            "Github"
+        ]
         
         if (!firstName || !lastName || !email || !username || !password) {
             res.status(400);
@@ -49,9 +58,14 @@ const register = async (req,res, next) => {
         const hashedPassword = await bcrypt.hash(password,10);
         
         //SQL QUERY
-        const sql = "INSERT INTO developer_tbl (first_name, last_name, email, username, developer_password, verification_token) VALUES (?,?,?,?,?,?)";
-        await mysql.query(sql,[firstName, lastName, email, username, hashedPassword, emailToken]);
+        let sql = "INSERT INTO developer_tbl (first_name, last_name, email, username, developer_password, verification_token) VALUES (?,?,?,?,?,?)";
+        const [result] = await mysql.query(sql,[firstName, lastName, email, username, hashedPassword, emailToken]);
 
+        sql = "INSERT INTO social_tbl (developer_id, social_name, social_url) VALUES (?, ?, ?);";
+        
+        for (let social of socials) {
+            await mysql.query(sql, [result.insertId, social, ""]);
+        }
 
         const verificationUrl = `${req.protocol}://${req.hostname}:${process.env.PORT}/auth/verify/${emailToken}`;
 
