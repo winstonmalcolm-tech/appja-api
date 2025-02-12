@@ -56,10 +56,13 @@ const register = async (req,res, next) => {
 
         const emailToken = emailTokenGenerator();
         const hashedPassword = await bcrypt.hash(password,10);
-        
+        const date = new Date();
+        date.setHours(date.getHours() + 1);
+        let result;
         //SQL QUERY
-        let sql = "INSERT INTO developer_tbl (first_name, last_name, email, username, developer_password, verification_token) VALUES (?,?,?,?,?,?)";
-        const [result] = await mysql.query(sql,[firstName, lastName, email, username, hashedPassword, emailToken]);
+        let sql = "INSERT INTO developer_tbl (first_name, last_name, email, username, developer_password, verification_token, verification_token_exp) VALUES (?,?,?,?,?,?,?)";
+        [result] = await mysql.query(sql,[firstName, lastName, email, username, hashedPassword, emailToken, date]);
+        
 
         sql = "INSERT INTO social_tbl (developer_id, social_name, social_url) VALUES (?, ?, ?);";
         
@@ -67,7 +70,7 @@ const register = async (req,res, next) => {
             await mysql.query(sql, [result.insertId, social, ""]);
         }
 
-        const verificationUrl = `${req.protocol}://${req.hostname}:${process.env.PORT}/auth/verify/${emailToken}`;
+        const verificationUrl = `${process.env.SERVER_BASE_URL}/auth/verify/${emailToken}`;
 
 
         await mail.sendMail({
@@ -76,8 +79,15 @@ const register = async (req,res, next) => {
             to: email,
             html: `
                 <h1>Hi, ${firstName}</h1>
-                <p>Thank you for signing up for our platform, please click <a href="${verificationUrl}">here</a> to verify your email.
+                <p>Thank you for signing up for our platform, please click <a href="${verificationUrl}">here</a> to verify your email.<br />Link expires in 1 hour. 
             `
+        }).catch(async (err) => {
+            if (err) {
+                sql = `DELETE developer_tbl, social_tbl FROM developer_tbl INNER JOIN social_tbl WHERE developer_tbl.developer_id = social_tbl.developer_id AND developer_tbl.developer_id=${result.insertId}`;
+                await mysql.query(sql);
+                res.status(500);
+                throw new Error("Sorry, we are having issue with our server");
+            }
         });
 
         res.status(201).json({message: "Please verifiy your email by clicking on the link sent to you"});
@@ -93,13 +103,22 @@ const verify = async (req,res,next) => {
 
     try {
         const { token } = req.params;
-
+        let message = "";
         let sql = "SELECT * FROM developer_tbl WHERE verification_token = ? AND isVerified = false";
 
         const [rows] = await mysql.query(sql, [token]);
 
         if (rows.fieldCount < 1) {
-            res.send("Email Already verified");
+            message = "Email already verified.";
+            res.redirect(process.env.CLIENT_BASE_URL + "/verified?isVerified=true&reason="+message);
+            return;
+        }
+
+        if (rows[0].verification_token_exp < new Date()) {
+            sql = "DELETE FROM developer_tbl WHERE verification_token = ?";
+            await mysql.query(sql, [token]);
+            message = "Email link expired. Please sign up again.";
+            res.redirect(process.env.CLIENT_BASE_URL + "/verified?isVerified=false&reason="+message);
             return;
         }
 
@@ -108,11 +127,12 @@ const verify = async (req,res,next) => {
         const [result, fields] = await mysql.query(sql, [token]);
 
         if (result.affectedRows > 0) {
-            res.send("Email Verified successfully");
+            //Redirect to frontend
+            res.redirect(301, process.env.CLIENT_BASE_URL+"/verified?isVerified=true");
             return;
         }
-        
-        res.send("Email not verified, server error");
+        message = "Sorry, server error";
+        res.redirect(301, process.env.CLIENT_BASE_URL+"/verified?isVerified=false&reason="+message);
     } catch (error) {
         next(error.message);
     }

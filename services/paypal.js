@@ -1,5 +1,6 @@
 const axios = require("axios");
 
+
 const generateAccessToken = async () => {
     const response = await axios({
         url: process.env.PAYPAL_BASE_URL + "/v1/oauth2/token",
@@ -15,7 +16,7 @@ const generateAccessToken = async () => {
     return response.data.access_token
 }
 
-exports.createOrder = async (developerId) => {
+exports.createOrder = async (developerId, planType, cost, benefits) => {
     const accessToken = await generateAccessToken();
 
     const response = await axios({
@@ -44,23 +45,23 @@ exports.createOrder = async (developerId) => {
                 {
                     "items": [
                         {
-                            "name": "Standard Developer membership",
-                            "description": "Developer plan for premium service",
+                            "name": planType,
+                            "description": benefits,
                             "quantity": "1",
                             "unit_amount": {
                                 "currency_code": "USD",
-                                "value": "15.00"
+                                "value": cost
                             }
                         }
                     ],
 
                     "amount": {
                         "currency_code": "USD",
-                        "value": "15.00",
+                        "value": cost,
                         "breakdown": {
                             "item_total": {
                                 "currency_code": "USD",
-                                "value": "15.00"
+                                "value": cost
                             }
                         }
                     }
@@ -86,3 +87,10 @@ exports.capturePayment = async (orderId) => {
 
     return response.data;
 }
+
+/*
+
+PAYPAL TEST ACCOUNT - sb-kubdm36370397@personal.example.com
+PASSWORD - wrWxD_k2
+
+*/

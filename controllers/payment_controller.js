@@ -6,7 +6,7 @@ const makePayment = async (req, res, next) => {
     try {  
         const {planType, cost, benefits} = req.body;
 
-        const paymentUrl = await paypal.createOrder(req.id);
+        const paymentUrl = await paypal.createOrder(req.id, planType, cost, JSON.stringify(benefits));
 
         res.status(200).json({"url": paymentUrl});
 

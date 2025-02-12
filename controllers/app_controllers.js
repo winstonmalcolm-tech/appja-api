@@ -1,7 +1,7 @@
 const mysql = require("../config/db_config");
 const megabyteConversion = require("../utlis/byte_to_megabyte");
 const path = require("path");
-const fs = require("fs/promises");
+const fs = require("fs");
 
 const upload = async (req, res, next) => {
 
@@ -13,14 +13,29 @@ const upload = async (req, res, next) => {
 
         const appCount = rows[0].appTotal;
 
+        const appNameAvailableSQL = "SELECT COUNT(app_name) as namesCount FROM app_tbl WHERE app_name = ?;";
+        [rows] = await mysql.query(appNameAvailableSQL, [app_name]);
+
+        const appNamesCount = rows[0].namesCount;
+
         const getPlanTypeSQL = "SELECT plan FROM developer_tbl WHERE developer_id = ?;";
         [rows] = await mysql.query(getPlanTypeSQL, [req.id]);
 
         const planType = rows[0].plan;
 
+        if (appNamesCount > 0) {
+            res.status(400);
+            throw new Error("App name already taken");
+        }
+
         if (planType == "Hobbyist" && appCount == 3) {
             res.status(403);
             throw new Error("You have reached the maximum amount of uploads, remove existing apps or upgrade plan");
+        }
+
+        if (planType == "Standard" && appCount == 10) {
+            res.status(403);
+            throw new Error("You have reached the maximum amount of uploads, remove existing apps to upload more");
         }
 
         if (!app_name || !app_category || !app_description) {
@@ -36,13 +51,21 @@ const upload = async (req, res, next) => {
 
         const app = req.files.app[0];
         const icon = req.files.icon[0];
-        const images = req.files.images;        
-
-        const url_base = `${req.protocol}://${req.hostname}:${process.env.PORT}/`;
+        const images = req.files.images;     
 
         const app_size = Math.ceil(megabyteConversion(app.size));
-        const app_download_url = `${url_base}${app.path}`;
-        const app_icon_url = `${url_base}${icon.path}`;
+        const app_download_url = `${process.env.SERVER_BASE_URL}/${app.path}`;
+        const app_icon_url = `${process.env.SERVER_BASE_URL}/${icon.path}`;
+
+        if (planType == "Hobbyist" && app_size > 100) {
+            res.status(400);
+            throw new Error("App size exceeds what current plan offers");
+        }
+
+        if (planType == "Standard" && app_size > 200) {
+            res.status(400);
+            throw new Error("App size exceeds what current plan offers");
+        }
 
         let sql = "INSERT INTO app_tbl (developer_id, app_name, app_category, app_size, app_url, app_icon_url, app_description) VALUES (?, ?, ?, ?, ?, ?, ?);";
 
@@ -50,25 +73,23 @@ const upload = async (req, res, next) => {
 
         
         sql = "INSERT INTO image_tbl (app_id, image_url) VALUES (?,?);";
-        let image_url;
 
         if (images.length > 4) {
             for (let i=0; i<4; i++) {
-                image_url = `${url_base}${images[i].path}`;
+                image_url = `${process.env.SERVER_BASE_URL}/${images[i].path}`;
                 await mysql.query(sql, [result.insertId, image_url]);
             }
         } else {
             for (let image in images) {
-                image_url = `${url_base}${images[image].path}`;
+                image_url = `${process.env.SERVER_BASE_URL}/${images[image].path}`;
                 await mysql.query(sql, [result.insertId, image_url]);
             }
         }
 
-        
-
         res.status(200).json({message: "Uploaded successfully"});
 
     } catch (error) {
+        console.log(error);
         next(error.message);
     }
 }

@@ -2,17 +2,29 @@ const express = require("express");
 const multer = require("multer");
 const router = express.Router();
 const protect = require("../middlewares/authorize_middleware");
-const fs = require("fs/promises");
-const path = require('path');
+const { getDeveloper, updateDeveloper, getPlan } = require("../controllers/developer_controller");
+const path = require("node:path");
+const fs = require("node:fs/promises");
 
+const fileFilter = (req, file, cb) => {
+    
+    const allowedImageTypes = ["image/jpg", "image/jpeg", "image/png"];
 
-const { getDeveloper, updateDeveloper } = require("../controllers/developer_controller");
+    if (file.fieldname === "profileImg") {
+        
+        if (allowedImageTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error("Only jpg, jpeg and png files are allowed!"), false);
+        }
 
+    } 
+}
 
 const storage = multer.diskStorage({
     destination: async (req, file, cb) => {
-
-        if (req.body.oldFile) {
+        
+        if (req.body.oldFile !="null") {
             const parsedUrl = URL.parse(req.body.oldFile);
             const filePath = path.join(__dirname+`../${parsedUrl.pathname}`);
             const parentDirectory = path.join(__dirname, '..');
@@ -40,8 +52,9 @@ const storage = multer.diskStorage({
     }
 });
 
-const fileUpload = multer({storage: storage});
+const fileUpload = multer({storage: storage, fileFilter: fileFilter});
 
+router.get("/current-plan/:id", protect, getPlan);
 router.get("/", protect, getDeveloper);
 router.get("/:id", getDeveloper);
 

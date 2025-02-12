@@ -2,25 +2,10 @@ const router = require("express").Router();
 const protect = require("../middlewares/authorize_middleware");
 const { upload, remove, getApp, download, updateApp, getApps } = require("../controllers/app_controllers");
 const fs = require("fs/promises");
-
 const multer = require("multer");
 const path = require("path");
 
-const storage = multer.diskStorage({
-    destination: async (req, file, cb) => {
-
-        const directory = `uploads/${req.id}/apps/${req.body.app_name.replace(" ", "_")}`;
-        await fs.mkdir(directory, {recursive: true});
-
-        cb(null, directory);
-    },
-
-    filename: (req, file, cb) => {
-        cb(null, file.originalname.replace(" ", ""));
-    }
-});
-
-const fileFilter = (req, file, cb) => {
+const fileFilter = async (req, file, cb) => {
     
     const allowedImageTypes = ["image/jpg", "image/jpeg", "image/png"];
 
@@ -53,7 +38,19 @@ const fileFilter = (req, file, cb) => {
     
 }
 
-const fileUpload = multer({ storage: storage, fileFilter});
+const storage = multer.diskStorage({
+    destination: async (req, file, cb) => {
+        const directory = `uploads/${req.id}/apps/${req.body.app_name.replace(" ", "_")}`;
+        await fs.mkdir(directory, {recursive: true});
+
+        cb(null, directory);
+    },
+    
+    filename: (req, file, cb) => {
+        cb(null, file.originalname.replace(" ", ""));
+    }
+})
+const fileUpload = multer({storage, fileFilter: fileFilter});
 
 
 router.get("/", getApps);
@@ -69,7 +66,6 @@ const modifyStorage = multer.diskStorage({
             
             for (image of req.body.deletedImages) {
                 let parsedUrl = URL.parse(image);
-                let filePath = path.join(__dirname+`../${parsedUrl.pathname}`);
                 let parentDirectory = path.join(__dirname, '..');
                 const fullPath = `${parentDirectory}${parsedUrl.pathname}`;
 

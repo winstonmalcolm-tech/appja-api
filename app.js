@@ -44,7 +44,7 @@ const server = app.listen(port, () => console.log(`Server running on port ${port
 //io is the socket.io server
 const io = socketio(server, {
     cors: {
-        origin: ["http://localhost:5173"]
+        origin: [process.env.CLIENT_BASE_URL]
     }
 });
 
@@ -53,12 +53,10 @@ io.on("connect", socket => {
     console.log(socket.id);
 
     socket.on("join-room", (room) => {
-        console.log("Room Joined");
         socket.join(room);
     });
 
     socket.on("send-review", (data) => {
-        console.log(data);
         io.to(data.room_id).emit("receive-review", data);
     });
 
