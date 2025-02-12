@@ -1,5 +1,6 @@
 const mysql = require("../config/db_config");
 
+
 const getDeveloper = async (req, res, next) => {
 
     try {

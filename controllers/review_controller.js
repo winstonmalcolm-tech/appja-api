@@ -1,5 +1,5 @@
 const mysql = require("../config/db_config");
-
+const { v4: uuidv4 } = require("uuid");
 
 const newReview = async (req, res, next) => {
     try {
@@ -10,9 +10,9 @@ const newReview = async (req, res, next) => {
             throw new Error("Please fill all fields");
         }
 
-        let sql = "INSERT INTO review_tbl (developer_id, app_id, review_text) VALUES (?, ?, ?);";
+        let sql = "INSERT INTO review_tbl (review_id, developer_id, app_id, review_text) VALUES (?, ?, ?, ?);";
 
-        await mysql.query(sql, [req.id, appID, reviewText]);
+        await mysql.query(sql, [uuidv4(), req.id, appID, reviewText]);
 
         res.status(201).json({message: "Review posted"});
 

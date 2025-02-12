@@ -5,7 +5,7 @@ const emailValidator = require('email-validator');
 const emailTokenGenerator = require("../utlis/email_token_generator");
 const jwt = require("jsonwebtoken");
 const jwtGenerator = require("../utlis/jwt_token_generator");
-
+const { v4: uuidv4 } = require("uuid");
 
 
 const register = async (req,res, next) => {
@@ -60,21 +60,21 @@ const register = async (req,res, next) => {
         date.setHours(date.getHours() + 1);
         let result;
         //SQL QUERY
-        let sql = "INSERT INTO developer_tbl (first_name, last_name, email, username, developer_password, verification_token, verification_token_exp) VALUES (?,?,?,?,?,?,?)";
-        [result] = await mysql.query(sql,[firstName, lastName, email, username, hashedPassword, emailToken, date]);
+        let sql = "INSERT INTO developer_tbl (developer_id, first_name, last_name, email, username, developer_password, verification_token, verification_token_exp) VALUES (?,?,?,?,?,?,?,?)";
+        [result] = await mysql.query(sql,[uuidv4(),firstName, lastName, email, username, hashedPassword, emailToken, date]);
         
 
-        sql = "INSERT INTO social_tbl (developer_id, social_name, social_url) VALUES (?, ?, ?);";
+        sql = "INSERT INTO social_tbl (social_id, developer_id, social_name, social_url) VALUES (?,?,?,?);";
         
         for (let social of socials) {
-            await mysql.query(sql, [result.insertId, social, ""]);
+            await mysql.query(sql, [uuidv4(), result.insertId, social, ""]);
         }
 
         const verificationUrl = `${process.env.SERVER_BASE_URL}/auth/verify/${emailToken}`;
 
 
         await mail.sendMail({
-            from: `appja@gmail.com`,
+            from: `AppJA <appja@gmail.com>`,
             subject: "Email Verification",
             to: email,
             html: `
