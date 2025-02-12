@@ -10,9 +10,8 @@ app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
 const corsOptions = {
-    origin: 'https://appja.netlify.app/',
-    optionsSuccessStatus: 200,
-  };
+    origin: true,
+};
 
 app.use(cors(corsOptions))
 
