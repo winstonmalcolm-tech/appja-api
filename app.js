@@ -46,7 +46,7 @@ const server = app.listen(port, () => console.log(`Server running on port ${port
 //io is the socket.io server
 const io = socketio(server, {
     cors: {
-        origin: [process.env.CLIENT_BASE_URL]
+        origin: true
     }
 });
 
