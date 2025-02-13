@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const socketio = require("socket.io");
 const app = express();
@@ -9,11 +10,8 @@ const port = process.env.PORT || 8000;
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
-const corsOptions = {
-    origin: true,
-};
 
-app.use(cors(corsOptions))
+app.use(cors())
 
 
 //Middlewares
