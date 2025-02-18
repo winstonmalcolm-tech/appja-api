@@ -9,15 +9,16 @@ const mysql = require("mysql2/promise");
 // });
 
 
-<<<<<<< HEAD
 const url = `${process.env.MYSQLUSER}:${process.env.MYSQLPASSWORD}@${process.env.MYSQLHOST}:${process.env.MYSQLPORT}/${process.env.MYSQLDATABASE}`;
-=======
-const url = `mysql://${process.env.MYSQLUSER}:${process.env.MYSQLPASSWORD}@${process.env.MYSQLHOST}:${process.env.MYSQLPORT}/${process.env.MYSQL_DATABASE}`;
->>>>>>> fb0c2e05ecbbb8eae062ebeed15d9451726b8738
 
 // const connection = mysql.createConnection(url);
 
-const connection = mysql.createPool(url);
+const connection = mysql.createPool({
+    host: process.env.MYSQLHOST,
+    user: process.env.MYSQLUSER,
+    password: process.env.MYSQLPASSWORD,
+    database: process.env.MYSQLDATABASE
+});
 
 module.exports = connection;
 
