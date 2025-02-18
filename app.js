@@ -44,11 +44,7 @@ app.use(errorHandler);
 const server = app.listen(port, () => console.log(`Server running on port ${port}`));
 
 //io is the socket.io server
-const io = socketio(server, {
-    cors: {
-        origin: true
-    }
-});
+const io = socketio(server)
 
 //on is a regular javascript even listener
 io.on("connect", socket => {
