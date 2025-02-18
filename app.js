@@ -5,13 +5,17 @@ const app = express();
 const path = require("path");
 const cors = require("cors");
 
+app.use(cors())
+app.options('*', cors());
+
 const port = process.env.PORT || 8000;
 
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
 
-app.use(cors())
+
+
 
 
 //Middlewares
