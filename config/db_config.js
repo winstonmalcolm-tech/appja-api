@@ -13,14 +13,14 @@ const url = `jdbc:mysql://${process.env.MYSQLHOST}:${process.env.MYSQLPORT}/${pr
 
 // const connection = mysql.createConnection(url);
 
-//const connection = mysql.createPool(url);
+const connection = mysql.createPool(url);
 
-const connection = mysql.createPool({
-    host: `jdbc:mysql://${process.env.MYSQLHOST}`,
-    user: process.env.MYSQLUSER,
-    password: process.env.MYSQLPASSWORD,
-    database: process.env.MYSQLDATABASE
-});
+// const connection = mysql.createPool({
+//     host: `jdbc:mysql://${process.env.MYSQLHOST}`,
+//     user: process.env.MYSQLUSER,
+//     password: process.env.MYSQLPASSWORD,
+//     database: process.env.MYSQLDATABASE
+// });
 
 module.exports = connection;
 
