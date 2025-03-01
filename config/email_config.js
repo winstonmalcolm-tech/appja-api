@@ -2,7 +2,7 @@ const nodemailer = require("nodemailer");
 
 const transport = nodemailer.createTransport({
     host: "sandbox.smtp.mailtrap.io",
-    port: 465,
+    port: 2525,
     auth: {
         user: process.env.EMAIL_ADDR,
         pass: process.env.EMAIL_PASS
