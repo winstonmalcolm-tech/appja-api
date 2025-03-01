@@ -2,7 +2,6 @@ const mysql = require("../config/db_config");
 const megabyteConversion = require("../utlis/byte_to_megabyte");
 const path = require("path");
 const fs = require("fs");
-const { v4: uuidv4 } = require("uuid");
 
 const upload = async (req, res, next) => {
 
@@ -68,22 +67,22 @@ const upload = async (req, res, next) => {
             throw new Error("App size exceeds what current plan offers");
         }
 
-        let sql = "INSERT INTO app_tbl (app_id, developer_id, app_name, app_category, app_size, app_url, app_icon_url, app_description) VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
+        let sql = "INSERT INTO app_tbl (developer_id, app_name, app_category, app_size, app_url, app_icon_url, app_description) VALUES (?, ?, ?, ?, ?, ?, ?);";
 
-        const [result] = await mysql.query(sql, [uuidv4(), req.id, app_name, app_category, app_size, app_download_url, app_icon_url, app_description]);
+        const [result] = await mysql.query(sql, [req.id, app_name, app_category, app_size, app_download_url, app_icon_url, app_description]);
 
         
-        sql = "INSERT INTO image_tbl (image_id, app_id, image_url) VALUES (?,?,?);";
+        sql = "INSERT INTO image_tbl (app_id, image_url) VALUES (?,?);";
 
         if (images.length > 4) {
             for (let i=0; i<4; i++) {
                 image_url = `${process.env.SERVER_BASE_URL}/${images[i].path}`;
-                await mysql.query(sql, [uuidv4(), result.insertId, image_url]);
+                await mysql.query(sql, [result.insertId, image_url]);
             }
         } else {
             for (let image in images) {
                 image_url = `${process.env.SERVER_BASE_URL}/${images[image].path}`;
-                await mysql.query(sql, [uuidv4(), result.insertId, image_url]);
+                await mysql.query(sql, [result.insertId, image_url]);
             }
         }
 
