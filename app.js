@@ -14,10 +14,6 @@ app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
 
-
-
-
-
 //Middlewares
 const errorHandler = require("./middlewares/error_middleware");
 
@@ -48,7 +44,11 @@ app.use(errorHandler);
 const server = app.listen(port, () => console.log(`Server running on port ${port}`));
 
 //io is the socket.io server
-const io = socketio(server)
+const io = socketio(server, {
+    cors: {
+        origin: '*'
+    }
+})
 
 //on is a regular javascript even listener
 io.on("connect", socket => {
